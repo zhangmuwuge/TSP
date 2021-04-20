@@ -129,20 +129,20 @@ public class ACO {
 		for (int g = 0; g < MAX_GEN; g++) {
 			for (int i = 0; i < antNum; i++) {
 				for (int j = 1; j < cityNum; j++) {
-					ants[i].selectNextCity(pheromone);
+					ants[i].selectNextDecisionMaking(pheromone);
 				}
-				ants[i].getTabu().add(ants[i].getFirstCity());
-				if (ants[i].getTourLength() < bestLength) {
-					bestLength = ants[i].getTourLength();
+				ants[i].getTabu().add(ants[i].getFirst());
+				if (ants[i].getIndex() < bestLength) {
+					bestLength = ants[i].getIndex();
 					for (int k = 0; k < cityNum + 1; k++) {
 						bestTour[k] = ants[i].getTabu().get(k).intValue();
 					}
 				}
 				for (int j = 0; j < cityNum; j++) {
 					ants[i].getDelta()[ants[i].getTabu().get(j).intValue()][ants[i].getTabu().get(j + 1)
-							.intValue()] = (float) (1. / ants[i].getTourLength());
+							.intValue()] = (float) (1. / ants[i].getIndex());
 					ants[i].getDelta()[ants[i].getTabu().get(j + 1).intValue()][ants[i].getTabu().get(j)
-							.intValue()] = (float) (1. / ants[i].getTourLength());
+							.intValue()] = (float) (1. / ants[i].getIndex());
 				}
 			}
 
