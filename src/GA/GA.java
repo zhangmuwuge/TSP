@@ -102,8 +102,8 @@ public class GA {
             y[i] = Integer.valueOf(dataArr[2]).intValue();
         }
         // 计算利润
-        for (int i = 0; i < decisionMakingNum ; i++) {
-            for (int j = 0 ; j < decisionMakingNum ; j++) {
+        for (int i = 0; i < decisionMakingNum; i++) {
+            for (int j = 0; j < decisionMakingNum; j++) {
                 double rij = Math.sqrt((x[i] - x[j]) * (x[i] - x[j]) + (y[i] - y[j]) * (y[i] - y[j]));
                 int tij = (int) Math.round(rij);
                 this.profit[i][j] = tij;
@@ -117,6 +117,7 @@ public class GA {
             chromosome.print();
         }
     }
+
     private void evolve(int g) {
         double[] selectionP = new double[N];// 选择概率
         double sum = 0.0;
