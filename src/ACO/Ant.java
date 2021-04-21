@@ -1,48 +1,45 @@
 package ACO;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
 public class Ant implements Cloneable {
 
-	private List<Integer> tabu; // 禁忌表
-	private List<Integer> allowedDecisionMaking; // 允许搜索的策略
+	private Vector<Integer> tabu; // 禁忌表
+	private Vector<Integer> allowedCities; // 允许搜索的城市
 	private float[][] delta; // 信息数变化矩阵
 	private int[][] distance; // 距离矩阵
 
 	private float alpha;
 	private float beta;
 
-	private int index; // 策略组合下标
-	private int portNum = 2; // 港口数量
-	private int decisionMakingNum; // 决策数量
+	private int tourLength; // 路径长度
+	private int cityNum; // 城市数量
 
-	private int first; // 起始策略
-	private int current; // 当前策略
+	private int firstCity; // 起始城市
+	private int currentCity; // 当前城市
 
 	public Ant() {
-		this.decisionMakingNum = 30;
-		index = 0;
+		cityNum = 30;
+		tourLength = 0;
 
 	}
 
 	/**
 	 * Constructor of Ant
-	 * 
-	 * @param portNum
+	 *
+	 * @param num
 	 *            蚂蚁数量
 	 */
-	public Ant(int decisionMakingNum) {
-		this.decisionMakingNum = decisionMakingNum;
-		index = 0;
+	public Ant(int num) {
+		cityNum = num;
+		tourLength = 0;
 
 	}
 
 	/**
 	 * 初始化蚂蚁，随机选择起始位置
-	 * 
+	 *
 	 * @param distance
 	 *            距离矩阵
 	 * @param a
@@ -53,66 +50,69 @@ public class Ant implements Cloneable {
 	public void init(int[][] distance, float a, float b) {
 		alpha = a;
 		beta = b;
-		allowedDecisionMaking = new ArrayList<>();
-		tabu = new ArrayList<>();
+		allowedCities = new Vector<Integer>();
+		tabu = new Vector<Integer>();
 		this.distance = distance;
-		delta = new float[portNum][portNum];
-		for (int i = 0; i < portNum; i++) {
+		delta = new float[cityNum][cityNum];
+		for (int i = 0; i < cityNum; i++) {
 			Integer integer = new Integer(i);
-			allowedDecisionMaking.add(integer);
-			for (int j = 0; j < portNum; j++) {
+			allowedCities.add(integer);
+			for (int j = 0; j < cityNum; j++) {
 				delta[i][j] = 0.f;
 			}
 		}
 
 		Random random = new Random(System.currentTimeMillis());
-		first = random.nextInt(portNum);
-		for (Integer i : allowedDecisionMaking) {
-			if (i.intValue() == first) {
-				allowedDecisionMaking.remove(i);
+		firstCity = random.nextInt(cityNum);
+		for (Integer i : allowedCities) {
+			if (i.intValue() == firstCity) {
+				allowedCities.remove(i);
 				break;
 			}
 		}
 
-		tabu.add(Integer.valueOf(first));
-		current = first;
+		tabu.add(Integer.valueOf(firstCity));
+		currentCity = firstCity;
 	}
 
 	/**
 	 * 选择下一个城市
-	 * 
+	 *
 	 * @param pheromone
 	 *            信息素矩阵
 	 */
-	public void selectNextDecisionMaking(float[][] pheromone) {
-		float[] p = new float[decisionMakingNum];
+	public void selectNextCity(float[][] pheromone) {
+		float[] p = new float[cityNum];
 		float sum = 0.0f;
 		// 计算分母部分
-		for (Integer i : allowedDecisionMaking) {
-			sum += Math.pow(pheromone[portNum][i.intValue()], alpha)
-					* Math.pow(1.0 / distance[portNum][i.intValue()], beta);
+		for (Integer i : allowedCities) {
+			sum += Math.pow(pheromone[currentCity][i.intValue()], alpha)
+					* Math.pow(1.0 / distance[currentCity][i.intValue()], beta);
 		}
 		// 计算概率矩阵
-		for (int i = 0; i < portNum; i++) {
+		for (int i = 0; i < cityNum; i++) {
 			boolean flag = false;
-			for (Integer j : allowedDecisionMaking) {
+			for (Integer j : allowedCities) {
+
 				if (i == j.intValue()) {
-					p[i] = (float) (Math.pow(pheromone[current][i], alpha)
-							* Math.pow(1.0 / distance[current][i], beta)) / sum;
+					p[i] = (float) (Math.pow(pheromone[currentCity][i], alpha)
+							* Math.pow(1.0 / distance[currentCity][i], beta)) / sum;
 					flag = true;
 					break;
 				}
 			}
+
 			if (flag == false) {
 				p[i] = 0.f;
 			}
 		}
-		// 轮盘赌选择下一个策略
+
+		// 轮盘赌选择下一个城市
 		Random random = new Random(System.currentTimeMillis());
 		float sleectP = random.nextFloat();
 		int selectCity = 0;
 		float sum1 = 0.f;
-		for (int i = 0; i < decisionMakingNum; i++) {
+		for (int i = 0; i < cityNum; i++) {
 			sum1 += p[i];
 			if (sum1 >= sleectP) {
 				selectCity = i;
@@ -121,57 +121,58 @@ public class Ant implements Cloneable {
 		}
 
 		// 从允许选择的城市中去除select city
-		for (Integer i : allowedDecisionMaking) {
+		for (Integer i : allowedCities) {
 			if (i.intValue() == selectCity) {
-				allowedDecisionMaking.remove(i);
+				allowedCities.remove(i);
 				break;
 			}
 		}
 		// 在禁忌表中添加select city
 		tabu.add(Integer.valueOf(selectCity));
 		// 将当前城市改为选择的城市
-		current = selectCity;
+		currentCity = selectCity;
+
 	}
 
 	/**
 	 * 计算路径长度
-	 * 
+	 *
 	 * @return 路径长度
 	 */
 	private int calculateTourLength() {
 		int len = 0;
-		for (int i = 0; i < portNum; i++) {
+		for (int i = 0; i < cityNum; i++) {
 			len += distance[this.tabu.get(i).intValue()][this.tabu.get(i + 1).intValue()];
 		}
 		return len;
 	}
 
-	public List<Integer> getAllowedDecisionMaking() {
-		return allowedDecisionMaking;
+	public Vector<Integer> getAllowedCities() {
+		return allowedCities;
 	}
 
-	public void setAllowedDecisionMaking(List<Integer> allowedDecisionMaking) {
-		this.allowedDecisionMaking = allowedDecisionMaking;
+	public void setAllowedCities(Vector<Integer> allowedCities) {
+		this.allowedCities = allowedCities;
 	}
 
-	public int getIndex() {
-		index = calculateTourLength();
-		return index;
+	public int getTourLength() {
+		tourLength = calculateTourLength();
+		return tourLength;
 	}
 
-	public void setIndex(int index) {
-		this.index = index;
+	public void setTourLength(int tourLength) {
+		this.tourLength = tourLength;
 	}
 
-	public int getPortNum() {
-		return portNum;
+	public int getCityNum() {
+		return cityNum;
 	}
 
-	public void setPortNum(int portNum) {
-		this.portNum = portNum;
+	public void setCityNum(int cityNum) {
+		this.cityNum = cityNum;
 	}
 
-	public List<Integer> getTabu() {
+	public Vector<Integer> getTabu() {
 		return tabu;
 	}
 
@@ -187,12 +188,12 @@ public class Ant implements Cloneable {
 		this.delta = delta;
 	}
 
-	public int getFirst() {
-		return first;
+	public int getFirstCity() {
+		return firstCity;
 	}
 
-	public void setFirst(int first) {
-		this.first = first;
+	public void setFirstCity(int firstCity) {
+		this.firstCity = firstCity;
 	}
 
 }

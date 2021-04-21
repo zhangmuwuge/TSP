@@ -17,7 +17,7 @@ public class GA {
 	private Chromosome[] chromosomes;
 	private Chromosome[] nextGeneration;
 	private int N;
-	private int num;
+	private int cityNum;
 	private double p_c_t;
 	private double p_m_t;
 	private int MAX_GEN;
@@ -30,22 +30,22 @@ public class GA {
 
 	public GA() {
 		N = 100;
-		num = 30;
+		cityNum = 30;
 		p_c_t = 0.9;
 		p_m_t = 0.1;
 		MAX_GEN = 1000;
 		bestLength = 0;
-		bestTour = new int[num];
+		bestTour = new int[cityNum];
 		bestFitness = 0.0;
 		averageFitness = new double[MAX_GEN];
 		chromosomes = new Chromosome[N];
-		distance = new int[num][num];
+		distance = new int[cityNum][cityNum];
 
 	}
 
 	/**
 	 * Constructor of GA class
-	 * 
+	 *
 	 * @param n
 	 *            种群规模
 	 * @param num
@@ -61,16 +61,16 @@ public class GA {
 	 */
 	public GA(int n, int num, int g, double p_c, double p_m, String filename) {
 		this.N = n;
-		this.num = num;
+		this.cityNum = num;
 		this.MAX_GEN = g;
 		this.p_c_t = p_c;
 		this.p_m_t = p_m;
-		bestTour = new int[this.num];
+		bestTour = new int[cityNum];
 		averageFitness = new double[MAX_GEN];
 		bestFitness = 0.0;
 		chromosomes = new Chromosome[N];
 		nextGeneration = new Chromosome[N];
-		distance = new int[this.num][this.num];
+		distance = new int[cityNum][cityNum];
 		this.filename = filename;
 	}
 
@@ -92,7 +92,7 @@ public class GA {
 
 	/**
 	 * 初始化GA
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	@SuppressWarnings("resource")
@@ -103,9 +103,9 @@ public class GA {
 		String strbuff;
 		BufferedReader data = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
 
-		distance = new int[num][num];
-		x = new int[num];
-		y = new int[num];
+		distance = new int[cityNum][cityNum];
+		x = new int[cityNum];
+		y = new int[cityNum];
 		while ((strbuff = data.readLine())!=null) {
 			if (!Character.isAlphabetic(strbuff.charAt(0)))
 				break;
@@ -113,16 +113,16 @@ public class GA {
 		String[] tmp = strbuff.split(" ");
 		x[0] = Integer.valueOf(tmp[1]);// x坐标
 		y[0] = Integer.valueOf(tmp[2]);// y坐标
-		for (int i = 1; i < num; i++) {
+		for (int i = 1; i < cityNum; i++) {
 			strbuff = data.readLine();
 			String[] strcol = strbuff.split(" ");
 			x[i] = Integer.valueOf(strcol[1]).intValue();
 			y[i] = Integer.valueOf(strcol[2]).intValue();
 		}
 		// 计算距离矩阵 ，针对具体问题，距离计算方法也不一样，此处用的是att48作为案例，它有48个城市，距离计算方法为伪欧氏距离，最优值为10628
-		for (int i = 0; i < num - 1; i++) {
+		for (int i = 0; i < cityNum - 1; i++) {
 			distance[i][i] = 0; // 对角线为0
-			for (int j = i + 1; j < num; j++) {
+			for (int j = i + 1; j < cityNum; j++) {
 				double rij = Math.sqrt((x[i] - x[j]) * (x[i] - x[j]) + (y[i] - y[j]) * (y[i] - y[j]));
 				int tij = (int) Math.round(rij);
 				// if (tij < rij) {
@@ -133,10 +133,10 @@ public class GA {
 				 */
 			}
 		}
-		distance[num - 1][num - 1] = 0;
+		distance[cityNum - 1][cityNum - 1] = 0;
 
 		for (int i = 0; i < N; i++) {
-			Chromosome chromosome = new Chromosome(num, distance);
+			Chromosome chromosome = new Chromosome(cityNum, distance);
 			chromosome.randomGeneration();
 			chromosomes[i] = chromosome;
 			chromosome.print();
@@ -153,7 +153,7 @@ public class GA {
 			if (chromosomes[i].getFitness() > bestFitness) {
 				bestFitness = chromosomes[i].getFitness();
 				bestLength = (int) (1.0 / bestFitness);
-				for (int j = 0; j < num; j++) {
+				for (int j = 0; j < cityNum; j++) {
 					bestTour[j] = chromosomes[i].getTour()[j];
 				}
 
@@ -172,6 +172,8 @@ public class GA {
 
 			Chromosome[] children = new Chromosome[2];
 			// 轮盘赌选择两个染色体
+			// System.out.println("---------start selection-----------");
+			// System.out.println();
 			for (int j = 0; j < 2; j++) {
 
 				int selectedCity = 0;
@@ -196,15 +198,21 @@ public class GA {
 			}
 
 			// 交叉操作(OX1)
+
+			// System.out.println("----------Start crossover----------");
+			// System.out.println();
+			// Random random = new Random(System.currentTimeMillis());
 			if (random.nextDouble() < p_c_t) {
+				// System.out.println("crossover");
+				// random = new Random(System.currentTimeMillis());
 				// 定义两个cut点
 				int cutPoint1 = -1;
 				int cutPoint2 = -1;
-				int r1 = random.nextInt(num);
-				if (r1 > 0 && r1 < num - 1) {
+				int r1 = random.nextInt(cityNum);
+				if (r1 > 0 && r1 < cityNum - 1) {
 					cutPoint1 = r1;
 					// random = new Random(System.currentTimeMillis());
-					int r2 = random.nextInt(num - r1);
+					int r2 = random.nextInt(cityNum - r1);
 					if (r2 == 0) {
 						cutPoint2 = r1 + 1;
 					} else if (r2 > 0) {
@@ -215,32 +223,37 @@ public class GA {
 				if (cutPoint1 > 0 && cutPoint2 > 0) {
 					// System.out.println("Cut point1 is: "+cutPoint1 +", and cut point2 is:
 					// "+cutPoint2);
-					int[] tour1 = new int[num];
-					int[] tour2 = new int[num];
-					if (cutPoint2 == num - 1) {
-						for (int j = 0; j < num; j++) {
+					int[] tour1 = new int[cityNum];
+					int[] tour2 = new int[cityNum];
+					if (cutPoint2 == cityNum - 1) {
+						for (int j = 0; j < cityNum; j++) {
 							tour1[j] = children[0].getTour()[j];
 							tour2[j] = children[1].getTour()[j];
 						}
 					} else {
 
 						// int n = 1;
-						for (int j = 0; j < num; j++) {
+						for (int j = 0; j < cityNum; j++) {
 							if (j < cutPoint1) {
 								tour1[j] = children[0].getTour()[j];
 								tour2[j] = children[1].getTour()[j];
-							} else if (j >= cutPoint1 && j < cutPoint1 + num - cutPoint2 - 1) {
+							} else if (j >= cutPoint1 && j < cutPoint1 + cityNum - cutPoint2 - 1) {
 								tour1[j] = children[0].getTour()[j + cutPoint2 - cutPoint1 + 1];
 								tour2[j] = children[1].getTour()[j + cutPoint2 - cutPoint1 + 1];
 							} else {
-								tour1[j] = children[0].getTour()[j - num + cutPoint2 + 1];
-								tour2[j] = children[1].getTour()[j - num + cutPoint2 + 1];
+								tour1[j] = children[0].getTour()[j - cityNum + cutPoint2 + 1];
+								tour2[j] = children[1].getTour()[j - cityNum + cutPoint2 + 1];
 							}
 
 						}
 					}
+					/*
+					 * System.out.println("The two tours are: "); for (int j = 0; j < cityNum; j++)
+					 * { System.out.print(tour1[j] +"\t"); } System.out.println(); for (int j = 0; j
+					 * < cityNum; j++) { System.out.print(tour2[j] +"\t"); } System.out.println();
+					 */
 
-					for (int j = 0; j < num; j++) {
+					for (int j = 0; j < cityNum; j++) {
 						if (j < cutPoint1 || j > cutPoint2) {
 
 							children[0].getTour()[j] = -1;
@@ -251,13 +264,18 @@ public class GA {
 							children[1].getTour()[j] = tmp1;
 						}
 					}
-
-					if (cutPoint2 == num - 1) {
+					/*
+					 * for (int j = 0; j < cityNum; j++) {
+					 * System.out.print(children[0].getTour()[j]+"\t"); } System.out.println(); for
+					 * (int j = 0; j < cityNum; j++) {
+					 * System.out.print(children[1].getTour()[j]+"\t"); } System.out.println();
+					 */
+					if (cutPoint2 == cityNum - 1) {
 						int position = 0;
 						for (int j = 0; j < cutPoint1; j++) {
-							for (int m = position; m < num; m++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour1[m] == children[0].getTour()[n]) {
 										flag = false;
 										break;
@@ -273,9 +291,9 @@ public class GA {
 						}
 						position = 0;
 						for (int j = 0; j < cutPoint1; j++) {
-							for (int m = position; m < num; m++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour2[m] == children[1].getTour()[n]) {
 										flag = false;
 										break;
@@ -292,10 +310,10 @@ public class GA {
 					} else {
 
 						int position = 0;
-						for (int j = cutPoint2 + 1; j < num; j++) {
-							for (int m = position; m < num; m++) {
+						for (int j = cutPoint2 + 1; j < cityNum; j++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour1[m] == children[0].getTour()[n]) {
 										flag = false;
 										break;
@@ -309,9 +327,9 @@ public class GA {
 							}
 						}
 						for (int j = 0; j < cutPoint1; j++) {
-							for (int m = position; m < num; m++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour1[m] == children[0].getTour()[n]) {
 										flag = false;
 										break;
@@ -326,10 +344,10 @@ public class GA {
 						}
 
 						position = 0;
-						for (int j = cutPoint2 + 1; j < num; j++) {
-							for (int m = position; m < num; m++) {
+						for (int j = cutPoint2 + 1; j < cityNum; j++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour2[m] == children[1].getTour()[n]) {
 										flag = false;
 										break;
@@ -343,9 +361,9 @@ public class GA {
 							}
 						}
 						for (int j = 0; j < cutPoint1; j++) {
-							for (int m = position; m < num; m++) {
+							for (int m = position; m < cityNum; m++) {
 								boolean flag = true;
-								for (int n = 0; n < num; n++) {
+								for (int n = 0; n < cityNum; n++) {
 									if (tour2[m] == children[1].getTour()[n]) {
 										flag = false;
 										break;
@@ -362,8 +380,14 @@ public class GA {
 
 				}
 			}
+			// children[0].print();
+			// children[1].print();
 
 			// 变异操作(DM)
+
+			// System.out.println("---------Start mutation------");
+			// System.out.println();
+			// random = new Random(System.currentTimeMillis());
 			if (random.nextDouble() < p_m_t) {
 				// System.out.println("mutation");
 				for (int j = 0; j < 2; j++) {
@@ -371,11 +395,11 @@ public class GA {
 					// 定义两个cut点
 					int cutPoint1 = -1;
 					int cutPoint2 = -1;
-					int r1 = random.nextInt(num);
-					if (r1 > 0 && r1 < num - 1) {
+					int r1 = random.nextInt(cityNum);
+					if (r1 > 0 && r1 < cityNum - 1) {
 						cutPoint1 = r1;
 						// random = new Random(System.currentTimeMillis());
-						int r2 = random.nextInt(num - r1);
+						int r2 = random.nextInt(cityNum - r1);
 						if (r2 == 0) {
 							cutPoint2 = r1 + 1;
 						} else if (r2 > 0) {
@@ -388,12 +412,12 @@ public class GA {
 						List<Integer> tour = new ArrayList<Integer>();
 						// System.out.println("Cut point1 is "+cutPoint1+", and cut point2 is
 						// "+cutPoint2);
-						if (cutPoint2 == num - 1) {
+						if (cutPoint2 == cityNum - 1) {
 							for (int k = 0; k < cutPoint1; k++) {
 								tour.add(Integer.valueOf(children[j].getTour()[k]));
 							}
 						} else {
-							for (int k = 0; k < num; k++) {
+							for (int k = 0; k < cityNum; k++) {
 								if (k < cutPoint1 || k > cutPoint2) {
 									tour.add(Integer.valueOf(children[j].getTour()[k]));
 								}
@@ -422,7 +446,7 @@ public class GA {
 
 						}
 
-						for (int k = 0; k < num; k++) {
+						for (int k = 0; k < cityNum; k++) {
 							children[j].getTour()[k] = tour.get(k).intValue();
 
 						}
@@ -459,9 +483,9 @@ public class GA {
 		System.out.println("The best fitness is: " + bestFitness);
 		System.out.println("The best tour length is: " + bestLength);
 		System.out.println("The best tour is: ");
-		
+
 		System.out.print(bestTour[0] );
-		for (int i = 1; i < num; i++) {
+		for (int i = 1; i < cityNum; i++) {
 			System.out.print("->"+bestTour[i]);
 		}
 		System.out.println();
@@ -502,12 +526,12 @@ public class GA {
 		this.chromosomes = chromosomes;
 	}
 
-	public int getNum() {
-		return num;
+	public int getCityNum() {
+		return cityNum;
 	}
 
-	public void setNum(int num) {
-		this.num = num;
+	public void setCityNum(int cityNum) {
+		this.cityNum = cityNum;
 	}
 
 	public double getP_c_t() {

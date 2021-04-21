@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * 
+ *
  * @author BIAO YU
- * 
+ *
  *
  */
 public class ACO {
@@ -33,7 +33,7 @@ public class ACO {
 
 	/**
 	 * constructor of ACO
-	 * 
+	 *
 	 * @param n
 	 *            城市数量
 	 * @param m
@@ -46,7 +46,7 @@ public class ACO {
 	 *            beta
 	 * @param r
 	 *            rho
-	 * 
+	 *
 	 **/
 	public ACO(int n, int m, int g, float a, float b, float r) {
 		cityNum = n;
@@ -62,7 +62,7 @@ public class ACO {
 	@SuppressWarnings("resource")
 	/**
 	 * 初始化ACO算法类
-	 * 
+	 *
 	 * @param filename
 	 *            数据文件名，该文件存储所有城市节点坐标数据
 	 * @throws IOException
@@ -73,7 +73,7 @@ public class ACO {
 		int[] y;
 		String strbuff;
 		BufferedReader data = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
-		
+
 		distance = new int[cityNum][cityNum];
 		x = new int[cityNum];
 		y = new int[cityNum];
@@ -84,7 +84,7 @@ public class ACO {
 		String[] tmp = strbuff.split(" ");
 		x[0] = Integer.valueOf(tmp[1]).intValue();// x坐标
 		y[0] = Integer.valueOf(tmp[2]).intValue();// y坐标
-		
+
 		for (int i = 1; i < cityNum; i++) {
 			strbuff = data.readLine();
 			String[] strcol = strbuff.split(" ");
@@ -129,20 +129,20 @@ public class ACO {
 		for (int g = 0; g < MAX_GEN; g++) {
 			for (int i = 0; i < antNum; i++) {
 				for (int j = 1; j < cityNum; j++) {
-					ants[i].selectNextDecisionMaking(pheromone);
+					ants[i].selectNextCity(pheromone);
 				}
-				ants[i].getTabu().add(ants[i].getFirst());
-				if (ants[i].getIndex() < bestLength) {
-					bestLength = ants[i].getIndex();
+				ants[i].getTabu().add(ants[i].getFirstCity());
+				if (ants[i].getTourLength() < bestLength) {
+					bestLength = ants[i].getTourLength();
 					for (int k = 0; k < cityNum + 1; k++) {
 						bestTour[k] = ants[i].getTabu().get(k).intValue();
 					}
 				}
 				for (int j = 0; j < cityNum; j++) {
 					ants[i].getDelta()[ants[i].getTabu().get(j).intValue()][ants[i].getTabu().get(j + 1)
-							.intValue()] = (float) (1. / ants[i].getIndex());
+							.intValue()] = (float) (1. / ants[i].getTourLength());
 					ants[i].getDelta()[ants[i].getTabu().get(j + 1).intValue()][ants[i].getTabu().get(j)
-							.intValue()] = (float) (1. / ants[i].getIndex());
+							.intValue()] = (float) (1. / ants[i].getTourLength());
 				}
 			}
 
