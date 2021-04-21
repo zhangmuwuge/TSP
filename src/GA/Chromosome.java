@@ -6,32 +6,31 @@ import java.util.Vector;
 public class Chromosome implements Cloneable {
 
 	private int[] tour;
-	private int[][] distance;
-	private int cityNum;
+	private int[][] information;
+	private int decisionMakingNum;
 	private double fitness;
 
 	public Chromosome() {
-		cityNum = 30;
-		tour = new int[cityNum];
-		distance = new int[cityNum][cityNum];
+		decisionMakingNum = 30;
+		tour = new int[decisionMakingNum];
+		information = new int[decisionMakingNum][decisionMakingNum];
 	}
 
-	public Chromosome(int num, int[][] distance) {
-		this.cityNum = num;
-		tour = new int[cityNum];
-		this.distance = distance;
+	public Chromosome(int num, int[][] information) {
+		this.decisionMakingNum = num;
+		tour = new int[decisionMakingNum];
+		this.information = information;
 
 	}
 
 	public void randomGeneration() {
 		Vector<Integer> allowedCities = new Vector<Integer>();
-		for (int i = 0; i < cityNum; i++) {
+		for (int i = 0; i < decisionMakingNum; i++) {
 			allowedCities.add(Integer.valueOf(i));
 		}
 
 		Random r = new Random(System.currentTimeMillis());
-		for (int i = 0; i < cityNum; i++) {
-
+		for (int i = 0; i < decisionMakingNum; i++) {
 			int index = r.nextInt(allowedCities.size());
 			int selectedCity = allowedCities.get(index).intValue();
 			tour[i] = selectedCity;
@@ -41,7 +40,7 @@ public class Chromosome implements Cloneable {
 	}
 
 	public void print() {
-		for (int i = 0; i < cityNum; i++) {
+		for (int i = 0; i < decisionMakingNum; i++) {
 			System.out.print(tour[i] + ",");
 		}
 		System.out.println();
@@ -55,10 +54,10 @@ public class Chromosome implements Cloneable {
 		 */
 		double fitness = 0.0;
 		int len = 0;
-		for (int i = 0; i < cityNum - 1; i++) {
-			len += distance[this.tour[i]][this.tour[i + 1]];
+		for (int i = 0; i < decisionMakingNum - 1; i++) {
+			len += information[this.tour[i]][this.tour[i + 1]];
 		}
-		len += distance[0][tour[cityNum - 1]];
+		len += information[0][tour[decisionMakingNum - 1]];
 		fitness = 1.0 / len;
 		return fitness;
 	}
@@ -71,20 +70,20 @@ public class Chromosome implements Cloneable {
 		this.tour = tour;
 	}
 
-	public int[][] getDistance() {
-		return distance;
+	public int[][] getInformation() {
+		return information;
 	}
 
-	public void setDistance(int[][] distance) {
-		this.distance = distance;
+	public void setInformation(int[][] information) {
+		this.information = information;
 	}
 
-	public int getCityNum() {
-		return cityNum;
+	public int getDecisionMakingNum() {
+		return decisionMakingNum;
 	}
 
-	public void setCityNum(int cityNum) {
-		this.cityNum = cityNum;
+	public void setDecisionMakingNum(int decisionMakingNum) {
+		this.decisionMakingNum = decisionMakingNum;
 	}
 
 	public double getFitness() {
@@ -99,8 +98,8 @@ public class Chromosome implements Cloneable {
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		Chromosome chromosome = (Chromosome) super.clone();
-		chromosome.cityNum = this.cityNum;
-		chromosome.distance = this.distance.clone();
+		chromosome.decisionMakingNum = this.decisionMakingNum;
+		chromosome.information = this.information.clone();
 		chromosome.tour = this.tour.clone();
 		chromosome.fitness = this.fitness;
 		return chromosome;
